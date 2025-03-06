@@ -19,5 +19,5 @@ Usuarios	Dueños de mascotas (registro/login)
 
 tecnologías a usar
 Angular	Interfaz gráfica (Frontend)
-Node.js + Express	API Rest (Backend)
+Node.js  (Backend)
 MySQL	Base de datos relacional
