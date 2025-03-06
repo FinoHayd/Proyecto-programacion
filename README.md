@@ -2,6 +2,6 @@
 
 
 
-Tecnologias a usas
+Tecnologias a usar
 -Docker
 -Angular
