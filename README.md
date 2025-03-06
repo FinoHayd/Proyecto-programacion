@@ -6,8 +6,9 @@ En la actualidad, muchos dueños de mascotas no llevan un control adecuado de la
 PetControl busca ofrecer una herramienta centralizada para registrar información importante de cada mascota y enviar recordatorios automáticos de las próximas vacunas y citas.
 
 Integrantes
--Anyi Sotelo
+
 -Mary Castellanos
+-Angie Sotelo
 -Hayder Fino
 
 Módulos y funcionalidades
