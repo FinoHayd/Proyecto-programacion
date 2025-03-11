@@ -1,24 +1,46 @@
 Proyecto de Programación: PetControl
-Control de mascotas, vacunas y visitas
-
+Control de mascotas, vacunas, visitas y predicción de enfermedades
 Problema que resuelve
-En la actualidad, muchos dueños de mascotas no llevan un control adecuado de las vacunas, visitas al veterinario y tratamientos que sus animales necesitan. Esto puede causar olvidos, lo que afecta la salud de las mascotas.
-PetControl busca ofrecer una herramienta centralizada para registrar información importante de cada mascota y enviar recordatorios automáticos de las próximas vacunas y citas.
-
+Muchos dueños de mascotas no llevan un control adecuado de las vacunas, visitas al veterinario y tratamientos médicos, lo que puede poner en riesgo la salud de los animales. PetControl busca ofrecer una solución centralizada que permita registrar información clave de cada mascota, recibir notificaciones automáticas de vacunas y citas, y hasta realizar predicciones básicas de enfermedades según síntomas ingresados.  
 Integrantes
+ Angie Sotelo  
+ Hayder Fino  
 
--Mary Castellanos
--Angie Sotelo
--Hayder Fino
+Módulos y Funcionalidades
+1. Mascotas
+- Registrar mascotas: (nombre, especie, raza, edad, dueño)  
+- Editar o eliminar mascotas registradas  
 
-Módulos y funcionalidades
-Mascotas	Registrar mascotas (nombre, especie, raza, edad, dueño, foto)
-Vacunas	Registrar vacunas aplicadas (fecha, tipo, dosis)
-Visitas	Registrar visitas al veterinario (motivo, diagnóstico, medicamentos)
-Notificaciones	Recordar próximas vacunas y citas
-Usuarios	Dueños de mascotas (registro/login)
+2. Vacunas 
+- Registrar vacunas aplicadas (fecha, tipo, dosis)  
+- Historial de vacunas por mascota  
 
-tecnologías a usar
-Angular	Interfaz gráfica (Frontend)
-Node.js  (Backend)
-MySQL	Base de datos relacional
+3. Visitas Veterinarias 
+- Registrar visitas (fecha, motivo, diagnóstico, medicamentos recetados)  
+
+4. Notificaciones  
+- Recordatorios automáticos de próximas vacunas  
+- Alertas de próximas citas veterinarias  
+
+
+
+5. Medicamentos 
+- Registrar medicamentos recetados a la mascota  
+- Instrucciones de administración (dosis, frecuencia)  
+
+6. Predicción de Enfermedades  
+- Ingreso de síntomas por el usuario  
+- Análisis básico para predecir posibles enfermedades (basado en una base de datos de síntomas y enfermedades comunes)  
+
+
+7. Generación de Reportes en PDF 
+- Generar un PDF con el historial completo de la mascota, incluyendo vacunas, visitas, medicamentos y diagnósticos  
+- Opción descargar el documento  
+
+Tecnologías a Usar
+- Frontend: Angular (Interfaz gráfica)  
+- Backend: Node.js (API y lógica de negocio)  
+- Base de Datos: MySQL (almacenamiento de información de mascotas, vacunas, visitas, etc.)  
+- Notificaciones: Email o SMS con Node.js y alguna API externa  
+- Generación de PDF: Librerías como jsPDF o pdfkit  
+
