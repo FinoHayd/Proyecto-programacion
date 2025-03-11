@@ -1,5 +1,8 @@
 Proyecto de Programación: PetControl
+
 Control de mascotas, vacunas, visitas y predicción de enfermedades
+
+
 Problema que resuelve
 Muchos dueños de mascotas no llevan un control adecuado de las vacunas, visitas al veterinario y tratamientos médicos, lo que puede poner en riesgo la salud de los animales. PetControl busca ofrecer una solución centralizada que permita registrar información clave de cada mascota, recibir notificaciones automáticas de vacunas y citas, y hasta realizar predicciones básicas de enfermedades según síntomas ingresados.  
 Integrantes
