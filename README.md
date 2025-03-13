@@ -23,7 +23,9 @@ Módulos y Funcionalidades
 
 4. Notificaciones  
 - Recordatorios automáticos de próximas vacunas  
-- Alertas de próximas citas veterinarias  
+- Alertas de próximas citas veterinarias
+- Emails: Nodemailer con SMTP de Gmail o Outlook.
+ 
 
 
 
@@ -41,9 +43,10 @@ Módulos y Funcionalidades
 - Opción descargar el documento  
 
 Tecnologías a Usar
-- Frontend: Angular (Interfaz gráfica)  
-- Backend: Node.js (API y lógica de negocio)  
-- Base de Datos: MySQL (almacenamiento de información de mascotas, vacunas, visitas, etc.)  
-- Notificaciones: Email o SMS con Node.js y alguna API externa  
-- Generación de PDF: Librerías como jsPDF o pdfkit  
+Frontend	Angular (Interfaz gráfica)
+Backend	Node.js (API y lógica de negocio)
+Base de Datos	MySQL (Cifrado AES-256 para datos sensibles)
+Notificaciones	Nodemailer (Email) 
+Seguridad	Cifrado AES-256 en MySQL para datos sensibles (nombres, historial médico, etc.)
+Generación de PDF	jsPDF o pdfkit 
 
