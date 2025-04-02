@@ -1081,7 +1081,7 @@ const PetControl = {
             'filter-vaccine-pet',
             'filter-visit-pet',
             'filter-medicine-pet'
-        ];
+        ]; 
         
         petSelectors.forEach(selector => {
             const select = document.getElementById(selector);

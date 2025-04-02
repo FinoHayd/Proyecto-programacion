@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetControl - Gestión de Mascotas</title>
+    <link rel="stylesheet" href="styles/global.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-paw"></i> PetControl</h1>
+            <nav>
+                <ul>
+                    <li><a href="#" class="nav-link active" data-section="dashboard"><i class="fas fa-home"></i> Inicio</a></li>
+                    <li><a href="#" class="nav-link" data-section="pets"><i class="fas fa-dog"></i> Mascotas</a></li>
+                    <li><a href="#" class="nav-link" data-section="vaccines"><i class="fas fa-syringe"></i> Vacunas</a></li>
+                    <li><a href="#" class="nav-link" data-section="visits"><i class="fas fa-clinic-medical"></i> Visitas</a></li>
+                    <li><a href="#" class="nav-link" data-section="medicines"><i class="fas fa-pills"></i> Medicamentos</a></li>
+                    <li><a href="#" class="nav-link" data-section="diagnosis"><i class="fas fa-stethoscope"></i> Diagnóstico</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main>
+            <!-- Panel de Inicio -->
+            <section id="dashboard" class="section active">
+                <h2>Bienvenido a PetControl</h2>
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <h3>Tus Mascotas</h3>
+                        <p id="pets-count">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Vacunas Pendientes</h3>
+                        <p id="pending-vaccines">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Próximas Visitas</h3>
+                        <p id="upcoming-visits">0</p>
+                    </div>
+                </div>
+                <div class="notifications-container">
+                    <h3>Recordatorios</h3>
+                    <ul id="reminders-list"></ul>
+                </div>
+            </section>
+
+            <!-- Gestión de Mascotas -->
+            <section id="pets" class="section">
+                <div class="section-header">
+                    <h2>Mis Mascotas</h2>
+                    <button id="add-pet-btn" class="btn-primary"><i class="fas fa-plus"></i> Agregar Mascota</button>
+                </div>
+                <div id="pets-list" class="cards-container"></div>
+                
+                <!-- Modal para agregar/editar mascota -->
+                <div id="pet-modal" class="modal">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <h3 id="pet-modal-title">Agregar Nueva Mascota</h3>
+                        <form id="pet-form">
+                            <input type="hidden" id="pet-id">
+                            <div class="form-group">
+                                <label for="pet-name">Nombre</label>
+                                <input type="text" id="pet-name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="pet-species">Especie</label>
+                                <select id="pet-species" required>
+                                    <option value="">Seleccione...</option>
+                                    <option value="Perro">Perro</option>
+                                    <option value="Gato">Gato</option>
+                                    <option value="Ave">Ave</option>
+                                    <option value="Roedor">Roedor</option>
+                                    <option value="Reptil">Reptil</option>
+                                    <option value="Otro">Otro</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="pet-breed">Raza</label>
+                                <input type="text" id="pet-breed">
+                            </div>
+                            <div class="form-group">
+                                <label for="pet-age">Edad (años)</label>
+                                <input type="number" id="pet-age" min="0" max="50">
+                            </div>
+                            <div class="form-group">
+                                <label for="pet-owner">Dueño</label>
+                                <input type="text" id="pet-owner" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="pet-photo">Foto (URL)</label>
+                                <input type="text" id="pet-photo">
+                            </div>
+                            <button type="submit" class="btn-primary">Guardar</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Gestión de Vacunas -->
+            <section id="vaccines" class="section">
+                <div class="section-header">
+                    <h2>Vacunas</h2>
+                    <button id="add-vaccine-btn" class="btn-primary"><i class="fas fa-plus"></i> Agregar Vacuna</button>
+                </div>
+                <div class="filter-container">
+                    <label for="filter-vaccine-pet">Filtrar por mascota:</label>
+                    <select id="filter-vaccine-pet">
+                        <option value="">Todas las mascotas</option>
+                    </select>
+                </div>
+                <table id="vaccines-table">
+                    <thead>
+                        <tr>
+                            <th>Mascota</th>
+                            <th>Vacuna</th>
+                            <th>Fecha</th>
+                            <th>Próxima Dosis</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="vaccines-list"></tbody>
+                </table>
+                
+                <!-- Modal para agregar/editar vacuna -->
+                <div id="vaccine-modal" class="modal">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <h3 id="vaccine-modal-title">Agregar Vacuna</h3>
+                        <form id="vaccine-form">
+                            <input type="hidden" id="vaccine-id">
+                            <div class="form-group">
+                                <label for="vaccine-pet">Mascota</label>
+                                <select id="vaccine-pet" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label for="vaccine-type">Tipo de Vacuna</label>
+                                <select id="vaccine-type" required>
+                                    <option value="">Seleccione...</option>
+                                    <option value="Rabia">Rabia</option>
+                                    <option value="Moquillo">Moquillo</option>
+                                    <option value="Parvovirus">Parvovirus</option>
+                                    <option value="Leptospirosis">Leptospirosis</option>
+                                    <option value="Hepatitis">Hepatitis</option>
+                                    <option value="Bordetella">Bordetella</option>
+                                    <option value="Leucemia Felina">Leucemia Felina</option>
+                                    <option value="Otra">Otra</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="vaccine-date">Fecha de Aplicación</label>
+                                <input type="date" id="vaccine-date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="vaccine-next-date">Próxima Dosis (opcional)</label>
+                                <input type="date" id="vaccine-next-date">
+                            </div>
+                            <div class="form-group">
+                                <label for="vaccine-notes">Notas</label>
+                                <textarea id="vaccine-notes" rows="3"></textarea>
+                            </div>
+                            <button type="submit" class="btn-primary">Guardar</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Gestión de Visitas Veterinarias -->
+            <section id="visits" class="section">
+                <div class="section-header">
+                    <h2>Visitas Veterinarias</h2>
+                    <button id="add-visit-btn" class="btn-primary"><i class="fas fa-plus"></i> Agregar Visita</button>
+                </div>
+                <div class="filter-container">
+                    <label for="filter-visit-pet">Filtrar por mascota:</label>
+                    <select id="filter-visit-pet">
+                        <option value="">Todas las mascotas</option>
+                    </select>
+                </div>
+                <table id="visits-table">
+                    <thead>
+                        <tr>
+                            <th>Mascota</th>
+                            <th>Fecha</th>
+                            <th>Motivo</th>
+                            <th>Diagnóstico</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="visits-list"></tbody>
+                </table>
+                
+                <!-- Modal para agregar/editar visita -->
+                <div id="visit-modal" class="modal">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <h3 id="visit-modal-title">Agregar Visita Veterinaria</h3>
+                        <form id="visit-form">
+                            <input type="hidden" id="visit-id">
+                            <div class="form-group">
+                                <label for="visit-pet">Mascota</label>
+                                <select id="visit-pet" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label for="visit-date">Fecha</label>
+                                <input type="date" id="visit-date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="visit-reason">Motivo</label>
+                                <input type="text" id="visit-reason" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="visit-diagnosis">Diagnóstico</label>
+                                <textarea id="visit-diagnosis" rows="3" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="visit-treatment">Tratamiento</label>
+                                <textarea id="visit-treatment" rows="3"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="visit-next-date">Próxima Visita (opcional)</label>
+                                <input type="date" id="visit-next-date">
+                            </div>
+                            <button type="submit" class="btn-primary">Guardar</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Gestión de Medicamentos -->
+            <section id="medicines" class="section">
+                <div class="section-header">
+                    <h2>Medicamentos</h2>
+                    <button id="add-medicine-btn" class="btn-primary"><i class="fas fa-plus"></i> Agregar Medicamento</button>
+                </div>
+                <div class="filter-container">
+                    <label for="filter-medicine-pet">Filtrar por mascota:</label>
+                    <select id="filter-medicine-pet">
+                        <option value="">Todas las mascotas</option>
+                    </select>
+                </div>
+                <table id="medicines-table">
+                    <thead>
+                        <tr>
+                            <th>Mascota</th>
+                            <th>Medicamento</th>
+                            <th>Dosis</th>
+                            <th>Frecuencia</th>
+                            <th>Fecha Inicio</th>
+                            <th>Fecha Fin</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="medicines-list"></tbody>
+                </table>
+                
+                <!-- Modal para agregar/editar medicamento -->
+                <div id="medicine-modal" class="modal">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <h3 id="medicine-modal-title">Agregar Medicamento</h3>
+                        <form id="medicine-form">
+                            <input type="hidden" id="medicine-id">
+                            <div class="form-group">
+                                <label for="medicine-pet">Mascota</label>
+                                <select id="medicine-pet" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label for="medicine-name">Nombre del Medicamento</label>
+                                <input type="text" id="medicine-name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="medicine-dose">Dosis</label>
+                                <input type="text" id="medicine-dose" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="medicine-frequency">Frecuencia</label>
+                                <input type="text" id="medicine-frequency" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="medicine-start-date">Fecha Inicio</label>
+                                <input type="date" id="medicine-start-date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="medicine-end-date">Fecha Fin</label>
+                                <input type="date" id="medicine-end-date">
+                            </div>
+                            <div class="form-group">
+                                <label for="medicine-notes">Instrucciones</label>
+                                <textarea id="medicine-notes" rows="3"></textarea>
+                            </div>
+                            <button type="submit" class="btn-primary">Guardar</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Diagnóstico de Enfermedades -->
+            <section id="diagnosis" class="section">
+                <h2>Diagnóstico de Enfermedades</h2>
+                <div class="diagnosis-container">
+                    <div class="diagnosis-form">
+                        <h3>Ingresa los síntomas</h3>
+                        <div class="form-group">
+                            <label for="diagnosis-pet">Mascota</label>
+                            <select id="diagnosis-pet" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Síntomas:</label>
+                            <div class="symptoms-checkboxes">
+                                <!-- Síntomas comunes -->
+                                <label><input type="checkbox" name="symptom" value="Fiebre"> Fiebre</label>
+                                <label><input type="checkbox" name="symptom" value="Vómitos"> Vómitos</label>
+                                <label><input type="checkbox" name="symptom" value="Diarrea"> Diarrea</label>
+                                <label><input type="checkbox" name="symptom" value="Pérdida de apetito"> Pérdida de apetito</label>
+                                <label><input type="checkbox" name="symptom" value="Letargo"> Letargo</label>
+                                <label><input type="checkbox" name="symptom" value="Tos"> Tos</label>
+                                <label><input type="checkbox" name="symptom" value="Estornudos"> Estornudos</label>
+                                <label><input type="checkbox" name="symptom" value="Picor"> Picor</label>
+                                <label><input type="checkbox" name="symptom" value="Pérdida de peso"> Pérdida de peso</label>
+                                <label><input type="checkbox" name="symptom" value="Sed excesiva"> Sed excesiva</label>
+                                <label><input type="checkbox" name="symptom" value="Dificultad para respirar"> Dificultad para respirar</label>
+                                <label><input type="checkbox" name="symptom" value="Cojea"> Cojea</label>
+                                <label><input type="checkbox" name="symptom" value="Secreción ocular"> Secreción ocular</label>
+                                <label><input type="checkbox" name="symptom" value="Secreción nasal"> Secreción nasal</label>
+                                <label><input type="checkbox" name="symptom" value="Cambio en el pelaje"> Cambio en el pelaje</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="other-symptoms">Otros síntomas (separados por comas)</label>
+                            <input type="text" id="other-symptoms" placeholder="Ejemplo: temblores, inflamación, etc.">
+                        </div>
+                        <button id="diagnose-btn" class="btn-primary">Diagnosticar</button>
+                    </div>
+                    <div class="diagnosis-result" id="diagnosis-result">
+                        <h3>Resultado del Diagnóstico</h3>
+                        <p>Selecciona los síntomas y haz clic en "Diagnosticar" para obtener posibles enfermedades.</p>
+                 </div>
+                </div>
+                
+                <div class="history-container">
+                    <h3>Historial de Diagnósticos</h3>
+                    <table id="diagnosis-history-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Mascota</th>
+                                <th>Síntomas</th>
+                                <th>Posibles Enfermedades</th>
+                                <th>Recomendaciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="diagnosis-history-list"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="scripts/app.js"></script>
+</body>
+</html>
