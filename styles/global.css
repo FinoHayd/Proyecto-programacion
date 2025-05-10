@@ -4,6 +4,9 @@
     align-items: center;
     min-height: 100vh;
     background-color: #f5f5f5;
+    background-image: url('../dos.jpg'), url('dos.jpg'), url('/dos.jpg');
+    background-size: cover;
+    background-position: center;
 }
 
 .login-box {
@@ -180,65 +183,84 @@ main {
 
 /* Estilos para botones */
 .btn {
-    padding: 0.5rem 1rem;
-    border-radius: var(--border-radius);
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
     border: none;
     cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.3s;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.btn i {
+    font-size: 1.1rem;
 }
 
 .btn-primary {
-    background-color: var(--primary-color);
+    background: linear-gradient(145deg, var(--primary-color), var(--secondary-color));
     color: white;
 }
 
 .btn-primary:hover {
-    background-color: var(--secondary-color);
+    background: linear-gradient(145deg, var(--secondary-color), var(--primary-color));
 }
 
 .btn-secondary {
-    background-color: #6c757d;
+    background: linear-gradient(145deg, #7d8a96, #5a6268);
     color: white;
 }
 
 .btn-secondary:hover {
-    background-color: #5a6268;
+    background: linear-gradient(145deg, #5a6268, #7d8a96);
 }
 
 .btn-success {
-    background-color: var(--success-color);
+    background: linear-gradient(145deg, var(--success-color), #218838);
     color: white;
 }
 
 .btn-success:hover {
-    background-color: #218838;
+    background: linear-gradient(145deg, #218838, var(--success-color));
 }
 
 .btn-warning {
-    background-color: var(--warning-color);
+    background: linear-gradient(145deg, var(--warning-color), #e0a800);
     color: #212529;
+    font-weight: bold;
 }
 
 .btn-warning:hover {
-    background-color: #e0a800;
+    background: linear-gradient(145deg, #e0a800, var(--warning-color));
 }
 
 .btn-danger {
-    background-color: var(--danger-color);
+    background: linear-gradient(145deg, var(--danger-color), #c82333);
     color: white;
 }
 
 .btn-danger:hover {
-    background-color: #c82333;
+    background: linear-gradient(145deg, #c82333, var(--danger-color));
 }
 
 .btn-sm {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
 }
 
 /* Estilos para el dashboard */
@@ -567,6 +589,55 @@ tr:hover {
     color: #666;
 }
 
+/* Estilos específicos para botones de login */
+.btn-login, .btn-create {
+    padding: 0.85rem 1.5rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    width: 100%;
+    text-transform: uppercase;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-login {
+    background: linear-gradient(145deg, var(--primary-color), var(--secondary-color));
+    color: white;
+}
+
+.btn-login:hover {
+    background: linear-gradient(145deg, var(--secondary-color), var(--primary-color));
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-create {
+    background: linear-gradient(145deg, var(--success-color), #218838);
+    color: white;
+}
+
+.btn-create:hover {
+    background: linear-gradient(145deg, #218838, var(--success-color));
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Estilos para botones en las cards */
+.pet-card-footer .btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    border-radius: 6px;
+}
+
+/* Estilos para botones en modales */
+.modal-content .btn-primary {
+    width: 100%;
+    margin-top: 1rem;
+    padding: 0.85rem;
+    font-size: 1rem;
+}
+
 /* Responsive */
 @media (max-width: 992px) {
     .container {
@@ -610,4 +681,57 @@ tr:hover {
         width: 95%;
         padding: 1.5rem;
     }
+}
+
+/* Estilos para ventanas emergentes personalizadas */
+.alert-modal-content {
+    max-width: 450px;
+    text-align: center;
+    padding: 2.5rem 2rem;
+}
+
+.alert-icon {
+    margin-bottom: 1.5rem;
+}
+
+.alert-icon i {
+    font-size: 3rem;
+    color: var(--primary-color);
+}
+
+#custom-alert-modal .alert-icon i {
+    color: var(--warning-color);
+}
+
+#custom-confirm-modal .alert-icon i {
+    color: var(--primary-color);
+}
+
+.alert-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+#alert-message, #confirm-message {
+    font-size: 1.1rem;
+    color: #555;
+    margin-top: 0.5rem;
+}
+
+/* Animación para los modales de alerta */
+@keyframes modalFadeIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(-20px);
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0);
+    }
+}
+
+.alert-modal-content {
+    animation: modalFadeIn 0.3s ease-out forwards;
 }

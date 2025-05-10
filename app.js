@@ -3,6 +3,61 @@ const users = [
     { username: "usuario1", password: "clave123", name: "Usuario de Prueba" }
 ];
 
+// Funciones para ventanas emergentes personalizadas
+function customAlert(message, title = "Mensaje") {
+    return new Promise((resolve) => {
+        const modalElement = document.getElementById('custom-alert-modal');
+        document.getElementById('alert-title').textContent = title;
+        document.getElementById('alert-message').textContent = message;
+        
+        const confirmBtn = document.getElementById('alert-confirm-btn');
+        
+        // Eliminar eventos previos para evitar duplicados
+        const newConfirmBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+        
+        // Agregar el nuevo evento
+        newConfirmBtn.addEventListener('click', () => {
+            modalElement.classList.remove('active');
+            resolve(true);
+        });
+        
+        // Mostrar el modal
+        modalElement.classList.add('active');
+    });
+}
+
+function customConfirm(message, title = "Confirmar") {
+    return new Promise((resolve) => {
+        const modalElement = document.getElementById('custom-confirm-modal');
+        document.getElementById('confirm-title').textContent = title;
+        document.getElementById('confirm-message').textContent = message;
+        
+        const acceptBtn = document.getElementById('confirm-accept-btn');
+        const cancelBtn = document.getElementById('confirm-cancel-btn');
+        
+        // Eliminar eventos previos para evitar duplicados
+        const newAcceptBtn = acceptBtn.cloneNode(true);
+        const newCancelBtn = cancelBtn.cloneNode(true);
+        acceptBtn.parentNode.replaceChild(newAcceptBtn, acceptBtn);
+        cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+        
+        // Agregar los nuevos eventos
+        newAcceptBtn.addEventListener('click', () => {
+            modalElement.classList.remove('active');
+            resolve(true);
+        });
+        
+        newCancelBtn.addEventListener('click', () => {
+            modalElement.classList.remove('active');
+            resolve(false);
+        });
+        
+        // Mostrar el modal
+        modalElement.classList.add('active');
+    });
+}
+
 // Elementos del DOM
 const loginScreen = document.getElementById('login-screen');
 const appContainer = document.getElementById('app-container');
@@ -12,69 +67,148 @@ const loginBtn = document.getElementById('login-btn');
 const createAccountBtn = document.getElementById('create-account-btn');
 
 // Manejar el inicio de sesión
-loginBtn.addEventListener('click', () => {
+loginBtn.addEventListener('click', async () => {
     const username = usernameInput.value.trim();
     const password = passwordInput.value.trim();
 
     if (!username || !password) {
-        alert('Por favor ingrese usuario y contraseña');
+        await customAlert('Por favor ingrese usuario y contraseña', 'Campos requeridos');
         return;
     }
 
-    const user = users.find(u => u.username === username && u.password === password);
+    try {
+        const response = await fetch('api/login.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, password })
+        });
 
-    if (user) {
-        // Inicio de sesión exitoso
-        loginScreen.style.display = 'none';
-        appContainer.style.display = 'flex';
-        
-        // Aquí podrías guardar información del usuario en localStorage
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        
-        // Inicializar la aplicación
-        PetControl.init();
-    } else {
-        alert('Usuario o contraseña incorrectos');
+        const data = await response.json();
+
+        if (data.success) {
+            // Inicio de sesión exitoso
+            loginScreen.style.display = 'none';
+            appContainer.style.display = 'flex';
+            
+            // Guardar información del usuario en localStorage
+            localStorage.setItem('currentUser', JSON.stringify(data.user));
+            
+            // Inicializar la aplicación
+            PetControl.init();
+        } else {
+            await customAlert(data.error || 'Error en el inicio de sesión', 'Error');
+        }
+    } catch (error) {
+        await customAlert('Error al conectar con el servidor', 'Error de conexión');
+        console.error('Error:', error);
     }
 });
 
-// Manejar la creación de cuenta
-createAccountBtn.addEventListener('click', () => {
-    const username = usernameInput.value.trim();
-    const password = passwordInput.value.trim();
-
-    if (!username || !password) {
-        alert('Por favor ingrese usuario y contraseña');
-        return;
-    }
-
-    // Verificar si el usuario ya existe
-    if (users.some(u => u.username === username)) {
-        alert('El nombre de usuario ya está en uso');
-        return;
-    }
-
-    // Crear nuevo usuario (en una app real, esto iría al backend)
-    const newUser = {
-        username,
-        password,
-        name: username
-    };
-    
-    users.push(newUser);
-    alert('Cuenta creada exitosamente. Ahora puede iniciar sesión.');
-});
-
-// Verificar si ya hay un usuario logueado (al recargar la página)
+// Eliminar los event listeners duplicados y consolidar en uno solo
 document.addEventListener('DOMContentLoaded', () => {
-    const currentUser = localStorage.getItem('currentUser');
+    // Aplicar el fondo al login screen cuando se carga la página
+    const loginScreen = document.getElementById('login-screen');
+    if (loginScreen) {
+        // Asegurarnos de que los estilos se mantengan
+        loginScreen.style.display = 'flex';
+        // Verificar si la imagen de fondo está aplicada correctamente
+        if (!loginScreen.style.backgroundImage || loginScreen.style.backgroundImage === 'none') {
+            loginScreen.style.backgroundImage = "url('dos.jpg')";
+            loginScreen.style.backgroundSize = "cover";
+            loginScreen.style.backgroundPosition = "center";
+        }
+    }
     
+    // Configurar el botón de logout
+    const logoutButton = document.getElementById('logout-btn');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', async () => {
+            const confirmLogout = await customConfirm('¿Estás seguro de que deseas cerrar sesión?', 'Cerrar sesión');
+            
+            if (confirmLogout) {
+                // Eliminar usuario actual del almacenamiento local
+                localStorage.removeItem('currentUser');
+                
+                // Ocultar el contenedor principal de la aplicación
+                const appContainer = document.getElementById('app-container');
+                if (appContainer) {
+                    appContainer.style.display = 'none';
+                }
+                
+                // Mostrar la pantalla de inicio de sesión
+                const loginScreen = document.getElementById('login-screen');
+                if (loginScreen) {
+                    // Asegurarnos de que los estilos se mantengan
+                    loginScreen.style.display = 'flex';
+                    // Verificar si la imagen de fondo está aplicada correctamente
+                    if (!loginScreen.style.backgroundImage || loginScreen.style.backgroundImage === 'none') {
+                        loginScreen.style.backgroundImage = "url('dos.jpg')";
+                        loginScreen.style.backgroundSize = "cover";
+                        loginScreen.style.backgroundPosition = "center";
+                    }
+                }
+                
+                // Limpiar campos de login
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+            }
+        });
+    } else {
+        console.error('El botón de cerrar sesión no se encontró en el DOM.');
+    }
+
+    // Verificar si hay un usuario logueado y inicializar la aplicación
+    const currentUser = localStorage.getItem('currentUser');
     if (currentUser) {
         loginScreen.style.display = 'none';
         appContainer.style.display = 'flex';
-        PetControl.init();
     }
-});// Objeto principal de la aplicación
+    
+    // Inicializar la aplicación en todos los casos
+    PetControl.init();
+});
+
+// Manejar la creación de cuenta
+createAccountBtn.addEventListener('click', async () => {
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value.trim();
+
+    if (!username || !password) {
+        await customAlert('Por favor ingrese usuario y contraseña', 'Campos requeridos');
+        return;
+    }
+
+    try {
+        const response = await fetch('api/login.php', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username,
+                password,
+                name: username // Usar el username como nombre por defecto
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            await customAlert('Cuenta creada exitosamente. Ahora puede iniciar sesión.', 'Operación exitosa');
+            usernameInput.value = '';
+            passwordInput.value = '';
+        } else {
+            await customAlert(data.error || 'Error al crear la cuenta', 'Error');
+        }
+    } catch (error) {
+        await customAlert('Error al conectar con el servidor', 'Error de conexión');
+        console.error('Error:', error);
+    }
+});
+
+// Objeto principal de la aplicación
 const PetControl = {
     // Datos iniciales
     data: {
@@ -133,21 +267,35 @@ const PetControl = {
     ],
     
     // Inicialización de la aplicación
-    init: function() {
-        this.loadData();
-        this.setupEventListeners();
-        this.renderDashboard();
-        this.renderPets();
-        this.renderVaccines();
-        this.renderVisits();
-        this.renderMedicines();
-        this.renderDiagnosisHistory();
-        this.checkReminders();
-        
-        // Mostrar la sección activa basada en hash o por defecto dashboard
-        const hash = window.location.hash.substring(1);
-        const defaultSection = hash || 'dashboard';
-        this.showSection(defaultSection);
+    init: async function() {
+        try {
+            // Cargar datos desde el servidor
+            await this.loadPets();
+            await this.loadVaccines();
+            await this.loadVisits();
+            await this.loadMedicines();
+            await this.loadDiagnosis();
+            
+            // Configurar event listeners
+            this.setupEventListeners();
+            
+            // Renderizar las diferentes secciones
+            this.renderDashboard();
+            this.renderPets();
+            this.renderVaccines();
+            this.renderVisits();
+            this.renderMedicines();
+            this.renderDiagnosisHistory();
+            this.checkReminders();
+            
+            // Mostrar la sección activa basada en hash o por defecto dashboard
+            const hash = window.location.hash.substring(1);
+            const defaultSection = hash || 'dashboard';
+            this.showSection(defaultSection);
+        } catch (error) {
+            console.error('Error en la inicialización:', error);
+            await customAlert('Error al cargar los datos iniciales', 'Error de inicialización');
+        }
     },
     
     // Cargar datos desde localStorage
@@ -271,10 +419,26 @@ const PetControl = {
         
         // Mascotas
         document.getElementById('add-pet-btn').addEventListener('click', () => this.showPetModal());
-        document.getElementById('pet-form').addEventListener('submit', (e) => {
+        
+        // Usar una variable para controlar si ya se está procesando un envío
+        let isSubmitting = false;
+        
+        document.getElementById('pet-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            this.savePet();
+            
+            // Evitar múltiples envíos
+            if (isSubmitting) return;
+            isSubmitting = true;
+            
+            try {
+                await this.savePet();
+            } catch (error) {
+                console.error('Error al guardar mascota:', error);
+            } finally {
+                isSubmitting = false;
+            }
         });
+        
         document.querySelector('#pet-modal .close').addEventListener('click', () => this.closeModal('pet-modal'));
         
         // Vacunas
@@ -376,55 +540,97 @@ const PetControl = {
             // Modo edición
             document.getElementById('pet-modal-title').textContent = 'Editar Mascota';
             document.getElementById('pet-id').value = pet.id;
-            document.getElementById('pet-name').value = pet.name;
-            document.getElementById('pet-species').value = pet.species;
-            document.getElementById('pet-breed').value = pet.breed;
-            document.getElementById('pet-age').value = pet.age;
-            document.getElementById('pet-owner').value = pet.owner;
-            document.getElementById('pet-photo').value = pet.photo || '';
+            document.getElementById('pet-name').value = pet.nombre || '';
+            document.getElementById('pet-species').value = pet.especie || '';
+            document.getElementById('pet-breed').value = pet.raza || '';
+            document.getElementById('pet-age').value = pet.edad || '';
+            document.getElementById('pet-owner').value = pet.duenio || '';
+            document.getElementById('pet-photo').value = pet.foto || '';
         } else {
             // Modo agregar
             document.getElementById('pet-modal-title').textContent = 'Agregar Nueva Mascota';
             form.reset();
+            document.getElementById('pet-id').value = '';
         }
         
         modal.classList.add('active');
     },
     
-    savePet: function() {
-        const form = document.getElementById('pet-form');
+    savePet: async function() {
         const petId = document.getElementById('pet-id').value;
         const isEdit = !!petId;
         
-        const petData = {
-            id: petId || this.generateId(),
-            name: document.getElementById('pet-name').value,
-            species: document.getElementById('pet-species').value,
-            breed: document.getElementById('pet-breed').value,
-            age: document.getElementById('pet-age').value,
-            owner: document.getElementById('pet-owner').value,
-            photo: document.getElementById('pet-photo').value
-        };
+        // Validar campos requeridos
+        const nombre = document.getElementById('pet-name').value.trim();
+        const especie = document.getElementById('pet-species').value.trim();
+        const duenio = document.getElementById('pet-owner').value.trim();
         
-        if (isEdit) {
-            // Actualizar mascota existente
-            const index = this.data.pets.findIndex(p => p.id === petId);
-            if (index !== -1) {
-                this.data.pets[index] = petData;
-            }
-        } else {
-            // Agregar nueva mascota
-            this.data.pets.push(petData);
+        if (!nombre || !especie || !duenio) {
+            await customAlert('Por favor completa los campos obligatorios (nombre, especie y dueño)', 'Campos requeridos');
+            return;
         }
-        
-        this.saveData();
-        this.renderPets();
-        this.closeModal('pet-modal');
-        this.renderDashboard(); // Actualizar estadísticas
+
+        const petData = {
+            nombre: nombre,
+            especie: especie,
+            raza: document.getElementById('pet-breed').value.trim() || '',
+            edad: parseInt(document.getElementById('pet-age').value) || 0,
+            duenio: duenio,
+            foto: document.getElementById('pet-photo').value.trim() || ''
+        };
+
+        try {
+            const response = await fetch('api/mascotas.php', {
+                method: isEdit ? 'PUT' : 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(isEdit ? { ...petData, id: petId } : petData)
+            });
+
+            const data = await response.json();
+            console.log('Respuesta del servidor:', data);
+
+            if (data.success) {
+                // Cerrar el modal antes de recargar los datos
+                this.closeModal('pet-modal');
+                
+                // Recargar y renderizar una sola vez
+                await this.loadPets();
+                this.renderPets();
+                
+                await customAlert(isEdit ? 'Mascota actualizada correctamente' : 'Mascota agregada correctamente', 'Operación exitosa');
+            } else {
+                await customAlert(data.error || 'Error al guardar la mascota', 'Error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            await customAlert('Error al conectar con el servidor', 'Error de conexión');
+            throw error; // Re-lanzar el error para que sea manejado por el caller
+        }
     },
     
-    deletePet: function(petId) {
-        if (confirm('¿Estás seguro de que deseas eliminar esta mascota? También se eliminarán sus registros asociados.')) {
+    // Función para cargar mascotas desde el servidor
+    loadPets: async function() {
+        try {
+            const response = await fetch('api/mascotas.php');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            console.log('Mascotas cargadas:', data);
+            this.data.pets = Array.isArray(data) ? data : [];
+        } catch (error) {
+            console.error('Error al cargar mascotas:', error);
+            this.data.pets = [];
+            throw error;
+        }
+    },
+    
+    deletePet: async function(petId) {
+        const confirmDelete = await customConfirm('¿Estás seguro de que deseas eliminar esta mascota? También se eliminarán sus registros asociados.', 'Eliminar mascota');
+        
+        if (confirmDelete) {
             // Eliminar mascota
             this.data.pets = this.data.pets.filter(pet => pet.id !== petId);
             
@@ -448,7 +654,7 @@ const PetControl = {
         const petsList = document.getElementById('pets-list');
         petsList.innerHTML = '';
         
-        if (this.data.pets.length === 0) {
+        if (!this.data.pets || this.data.pets.length === 0) {
             petsList.innerHTML = '<p>No hay mascotas registradas. Agrega tu primera mascota.</p>';
             return;
         }
@@ -457,18 +663,18 @@ const PetControl = {
             const petCard = document.createElement('div');
             petCard.className = 'pet-card';
             
-            const photoStyle = pet.photo ? `background-image: url('${pet.photo}')` : 
-                `background-color: ${pet.species === 'Perro' ? '#4a6fa5' : pet.species === 'Gato' ? '#ff9800' : '#4caf50'}`;
+            const photoStyle = pet.foto ? `background-image: url('${pet.foto}')` : 
+                `background-color: ${pet.especie === 'Perro' ? '#4a6fa5' : pet.especie === 'Gato' ? '#ff9800' : '#4caf50'}`;
             
             petCard.innerHTML = `
                 <div class="pet-card-header" style="${photoStyle}">
-                    <span class="pet-species">${pet.species}</span>
+                    <span class="pet-species">${pet.especie || 'No especificado'}</span>
                 </div>
                 <div class="pet-card-body">
-                    <h3>${pet.name}</h3>
-                    <p><strong>Raza:</strong> ${pet.breed || 'N/A'}</p>
-                    <p><strong>Edad:</strong> ${pet.age} años</p>
-                    <p><strong>Dueño:</strong> ${pet.owner}</p>
+                    <h3>${pet.nombre || 'Sin nombre'}</h3>
+                    <p><strong>Raza:</strong> ${pet.raza || 'N/A'}</p>
+                    <p><strong>Edad:</strong> ${pet.edad ? pet.edad + ' años' : 'N/A'}</p>
+                    <p><strong>Dueño:</strong> ${pet.duenio || 'No especificado'}</p>
                 </div>
                 <div class="pet-card-footer">
                     <button class="btn btn-secondary btn-sm edit-pet" data-id="${pet.id}">
@@ -488,19 +694,42 @@ const PetControl = {
             btn.addEventListener('click', (e) => {
                 const petId = e.target.closest('button').getAttribute('data-id');
                 const pet = this.data.pets.find(p => p.id === petId);
-                this.showPetModal(pet);
+                if (pet) {
+                    this.showPetModal(pet);
+                }
             });
         });
         
         document.querySelectorAll('.delete-pet').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+            btn.addEventListener('click', async (e) => {
                 const petId = e.target.closest('button').getAttribute('data-id');
-                this.deletePet(petId);
+                const confirmDelete = await customConfirm('¿Estás seguro de que deseas eliminar esta mascota?', 'Eliminar mascota');
+                
+                if (confirmDelete) {
+                    try {
+                        const response = await fetch('api/mascotas.php', {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ id: petId })
+                        });
+                        
+                        const data = await response.json();
+                        if (data.success) {
+                            await this.loadPets();
+                            this.renderPets();
+                            await customAlert('Mascota eliminada correctamente', 'Operación exitosa');
+                        } else {
+                            await customAlert(data.error || 'Error al eliminar la mascota', 'Error');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        await customAlert('Error al conectar con el servidor', 'Error de conexión');
+                    }
+                }
             });
         });
-        
-        // Actualizar filtros en otras secciones
-        this.updatePetFilters();
     },
     
     // ===== VACUNAS =====
@@ -510,11 +739,11 @@ const PetControl = {
         const petSelect = document.getElementById('vaccine-pet');
         
         // Llenar selector de mascotas
-        petSelect.innerHTML = '';
+        petSelect.innerHTML = '<option value="">Seleccione una mascota...</option>';
         this.data.pets.forEach(pet => {
             const option = document.createElement('option');
             option.value = pet.id;
-            option.textContent = pet.name;
+            option.textContent = pet.nombre;
             petSelect.appendChild(option);
         });
         
@@ -522,11 +751,11 @@ const PetControl = {
             // Modo edición
             document.getElementById('vaccine-modal-title').textContent = 'Editar Vacuna';
             document.getElementById('vaccine-id').value = vaccine.id;
-            document.getElementById('vaccine-pet').value = vaccine.petId;
-            document.getElementById('vaccine-type').value = vaccine.type;
-            document.getElementById('vaccine-date').value = vaccine.date;
-            document.getElementById('vaccine-next-date').value = vaccine.nextDate || '';
-            document.getElementById('vaccine-notes').value = vaccine.notes || '';
+            document.getElementById('vaccine-pet').value = vaccine.mascota_id;
+            document.getElementById('vaccine-type').value = vaccine.tipo;
+            document.getElementById('vaccine-date').value = vaccine.fecha;
+            document.getElementById('vaccine-next-date').value = vaccine.proxima_fecha || '';
+            document.getElementById('vaccine-notes').value = vaccine.notas || '';
         } else {
             // Modo agregar
             document.getElementById('vaccine-modal-title').textContent = 'Agregar Vacuna';
@@ -537,45 +766,93 @@ const PetControl = {
         modal.classList.add('active');
     },
     
-    saveVaccine: function() {
+    saveVaccine: async function() {
         const form = document.getElementById('vaccine-form');
         const vaccineId = document.getElementById('vaccine-id').value;
         const isEdit = !!vaccineId;
         
-        const vaccineData = {
-            id: vaccineId || this.generateId(),
-            petId: document.getElementById('vaccine-pet').value,
-            type: document.getElementById('vaccine-type').value,
-            date: document.getElementById('vaccine-date').value,
-            nextDate: document.getElementById('vaccine-next-date').value || null,
-            notes: document.getElementById('vaccine-notes').value
-        };
-        
-        if (isEdit) {
-            // Actualizar vacuna existente
-            const index = this.data.vaccines.findIndex(v => v.id === vaccineId);
-            if (index !== -1) {
-                this.data.vaccines[index] = vaccineData;
-            }
-        } else {
-            // Agregar nueva vacuna
-            this.data.vaccines.push(vaccineData);
+        if (!document.getElementById('vaccine-pet').value) {
+            await customAlert('Por favor seleccione una mascota', 'Campo requerido');
+            return;
         }
         
-        this.saveData();
-        this.renderVaccines();
-        this.closeModal('vaccine-modal');
-        this.renderDashboard(); // Actualizar estadísticas
-        this.checkReminders(); // Verificar recordatorios
+        if (!document.getElementById('vaccine-type').value) {
+            await customAlert('Por favor seleccione un tipo de vacuna', 'Campo requerido');
+            return;
+        }
+        
+        if (!document.getElementById('vaccine-date').value) {
+            await customAlert('Por favor seleccione una fecha', 'Campo requerido');
+            return;
+        }
+        
+        const vaccineData = {
+            id: vaccineId,
+            mascota_id: document.getElementById('vaccine-pet').value,
+            tipo: document.getElementById('vaccine-type').value,
+            fecha: document.getElementById('vaccine-date').value,
+            proxima_fecha: document.getElementById('vaccine-next-date').value || null,
+            notas: document.getElementById('vaccine-notes').value
+        };
+        
+        console.log('Enviando datos de vacuna:', vaccineData);
+        
+        try {
+            const response = await fetch('api/vacunas.php', {
+                method: isEdit ? 'PUT' : 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(vaccineData)
+            });
+
+            const data = await response.json();
+            console.log('Respuesta del servidor:', data);
+            
+            if (data.success) {
+                this.closeModal('vaccine-modal');
+                await this.loadVaccines();
+                this.renderVaccines();
+                this.renderDashboard();
+                this.checkReminders();
+                await customAlert(isEdit ? 'Vacuna actualizada correctamente' : 'Vacuna agregada correctamente', 'Operación exitosa');
+            } else {
+                await customAlert(data.error || 'Error al guardar la vacuna', 'Error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            await customAlert('Error al conectar con el servidor', 'Error de conexión');
+        }
     },
     
-    deleteVaccine: function(vaccineId) {
-        if (confirm('¿Estás seguro de que deseas eliminar este registro de vacuna?')) {
-            this.data.vaccines = this.data.vaccines.filter(vaccine => vaccine.id !== vaccineId);
-            this.saveData();
-            this.renderVaccines();
-            this.renderDashboard();
-            this.checkReminders();
+    deleteVaccine: async function(vaccineId) {
+        const confirmDelete = await customConfirm('¿Estás seguro de que deseas eliminar este registro de vacuna?', 'Eliminar vacuna');
+        
+        if (confirmDelete) {
+            try {
+                const response = await fetch('api/vacunas.php', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ id: vaccineId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    await this.loadVaccines();
+                    this.renderVaccines();
+                    this.renderDashboard();
+                    this.checkReminders();
+                    await customAlert('Vacuna eliminada correctamente', 'Operación exitosa');
+                } else {
+                    await customAlert(data.error || 'Error al eliminar la vacuna', 'Error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                await customAlert('Error al conectar con el servidor', 'Error de conexión');
+            }
         }
     },
     
@@ -587,7 +864,7 @@ const PetControl = {
         let vaccinesToShow = [...this.data.vaccines];
         
         if (filterPetId) {
-            vaccinesToShow = vaccinesToShow.filter(v => v.petId === filterPetId);
+            vaccinesToShow = vaccinesToShow.filter(v => v.mascota_id === filterPetId);
         }
         
         if (vaccinesToShow.length === 0) {
@@ -595,18 +872,18 @@ const PetControl = {
             return;
         }
         
-        vaccinesToShow.sort((a, b) => new Date(b.date) - new Date(a.date));
+        vaccinesToShow.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
         
         vaccinesToShow.forEach(vaccine => {
-            const pet = this.data.pets.find(p => p.id === vaccine.petId);
-            const petName = pet ? pet.name : 'Mascota desconocida';
+            const pet = this.data.pets.find(p => p.id === vaccine.mascota_id);
+            const petName = pet ? pet.nombre : 'Mascota desconocida';
             
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${petName}</td>
-                <td>${vaccine.type}</td>
-                <td>${this.formatDate(vaccine.date)}</td>
-                <td>${vaccine.nextDate ? this.formatDate(vaccine.nextDate) : 'N/A'}</td>
+                <td>${vaccine.tipo}</td>
+                <td>${this.formatDate(vaccine.fecha)}</td>
+                <td>${vaccine.proxima_fecha ? this.formatDate(vaccine.proxima_fecha) : 'N/A'}</td>
                 <td class="actions">
                     <button class="btn btn-secondary btn-sm edit-vaccine" data-id="${vaccine.id}">
                         <i class="fas fa-edit"></i>
@@ -630,11 +907,27 @@ const PetControl = {
         });
         
         document.querySelectorAll('.delete-vaccine').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+            btn.addEventListener('click', async (e) => {
                 const vaccineId = e.target.closest('button').getAttribute('data-id');
-                this.deleteVaccine(vaccineId);
+                await this.deleteVaccine(vaccineId);
             });
         });
+    },
+    
+    // Función para cargar vacunas desde el servidor
+    loadVaccines: async function() {
+        try {
+            const response = await fetch('api/vacunas.php');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            this.data.vaccines = Array.isArray(data) ? data : [];
+        } catch (error) {
+            console.error('Error al cargar vacunas:', error);
+            this.data.vaccines = [];
+            throw error;
+        }
     },
     
     // ===== VISITAS VETERINARIAS =====
@@ -648,7 +941,7 @@ const PetControl = {
         this.data.pets.forEach(pet => {
             const option = document.createElement('option');
             option.value = pet.id;
-            option.textContent = pet.name;
+            option.textContent = pet.nombre;
             petSelect.appendChild(option);
         });
         
@@ -656,12 +949,12 @@ const PetControl = {
             // Modo edición
             document.getElementById('visit-modal-title').textContent = 'Editar Visita Veterinaria';
             document.getElementById('visit-id').value = visit.id;
-            document.getElementById('visit-pet').value = visit.petId;
-            document.getElementById('visit-date').value = visit.date;
-            document.getElementById('visit-reason').value = visit.reason;
-            document.getElementById('visit-diagnosis').value = visit.diagnosis;
-            document.getElementById('visit-treatment').value = visit.treatment || '';
-            document.getElementById('visit-next-date').value = visit.nextDate || '';
+            document.getElementById('visit-pet').value = visit.mascota_id || visit.petId || '';
+            document.getElementById('visit-date').value = visit.fecha || visit.date || '';
+            document.getElementById('visit-reason').value = visit.motivo || visit.reason || '';
+            document.getElementById('visit-diagnosis').value = visit.diagnostico || visit.diagnosis || '';
+            document.getElementById('visit-treatment').value = visit.tratamiento || visit.treatment || '';
+            document.getElementById('visit-next-date').value = visit.proxima_visita || visit.nextDate || '';
         } else {
             // Modo agregar
             document.getElementById('visit-modal-title').textContent = 'Agregar Visita Veterinaria';
@@ -672,13 +965,34 @@ const PetControl = {
         modal.classList.add('active');
     },
     
-    saveVisit: function() {
+    saveVisit: async function() {
         const form = document.getElementById('visit-form');
         const visitId = document.getElementById('visit-id').value;
         const isEdit = !!visitId;
         
+        // Validar campos obligatorios
+        if (!document.getElementById('visit-pet').value) {
+            await customAlert('Por favor seleccione una mascota', 'Campo requerido');
+            return;
+        }
+        
+        if (!document.getElementById('visit-date').value) {
+            await customAlert('Por favor seleccione una fecha', 'Campo requerido');
+            return;
+        }
+        
+        if (!document.getElementById('visit-reason').value) {
+            await customAlert('Por favor ingrese el motivo de la visita', 'Campo requerido');
+            return;
+        }
+        
+        if (!document.getElementById('visit-diagnosis').value) {
+            await customAlert('Por favor ingrese el diagnóstico', 'Campo requerido');
+            return;
+        }
+        
         const visitData = {
-            id: visitId || this.generateId(),
+            id: visitId,
             petId: document.getElementById('visit-pet').value,
             date: document.getElementById('visit-date').value,
             reason: document.getElementById('visit-reason').value,
@@ -687,31 +1001,74 @@ const PetControl = {
             nextDate: document.getElementById('visit-next-date').value || null
         };
         
-        if (isEdit) {
-            // Actualizar visita existente
-            const index = this.data.visits.findIndex(v => v.id === visitId);
-            if (index !== -1) {
-                this.data.visits[index] = visitData;
-            }
-        } else {
-            // Agregar nueva visita
-            this.data.visits.push(visitData);
-        }
+        console.log('Enviando datos de visita:', visitData);
         
-        this.saveData();
-        this.renderVisits();
-        this.closeModal('visit-modal');
-        this.renderDashboard(); // Actualizar estadísticas
-        this.checkReminders(); // Verificar recordatorios
+        try {
+            const response = await fetch('api/visitas.php', {
+                method: isEdit ? 'PUT' : 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(visitData)
+            });
+
+            const data = await response.json();
+            console.log('Respuesta del servidor:', data);
+            
+            if (data.success || data.id) {
+                this.closeModal('visit-modal');
+                // Recargar visitas desde el servidor
+                const visitsResponse = await fetch('api/visitas.php');
+                if (visitsResponse.ok) {
+                    const visitsData = await visitsResponse.json();
+                    this.data.visits = Array.isArray(visitsData) ? visitsData : [];
+                }
+                this.renderVisits();
+                this.renderDashboard();
+                this.checkReminders();
+                await customAlert(isEdit ? 'Visita actualizada correctamente' : 'Visita agregada correctamente', 'Operación exitosa');
+            } else {
+                await customAlert(data.error || 'Error al guardar la visita', 'Error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            await customAlert('Error al conectar con el servidor', 'Error de conexión');
+        }
     },
     
-    deleteVisit: function(visitId) {
-        if (confirm('¿Estás seguro de que deseas eliminar este registro de visita?')) {
-            this.data.visits = this.data.visits.filter(visit => visit.id !== visitId);
-            this.saveData();
-            this.renderVisits();
-            this.renderDashboard();
-            this.checkReminders();
+    deleteVisit: async function(visitId) {
+        const confirmDelete = await customConfirm('¿Estás seguro de que deseas eliminar este registro de visita?', 'Eliminar visita');
+        
+        if (confirmDelete) {
+            try {
+                const response = await fetch('api/visitas.php', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ id: visitId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success || data.deleted) {
+                    // Recargar visitas desde el servidor
+                    const visitsResponse = await fetch('api/visitas.php');
+                    if (visitsResponse.ok) {
+                        const visitsData = await visitsResponse.json();
+                        this.data.visits = Array.isArray(visitsData) ? visitsData : [];
+                    }
+                    this.renderVisits();
+                    this.renderDashboard();
+                    this.checkReminders();
+                    await customAlert('Visita eliminada correctamente', 'Operación exitosa');
+                } else {
+                    await customAlert(data.error || 'Error al eliminar la visita', 'Error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                await customAlert('Error al conectar con el servidor', 'Error de conexión');
+            }
         }
     },
     
@@ -723,7 +1080,7 @@ const PetControl = {
         let visitsToShow = [...this.data.visits];
         
         if (filterPetId) {
-            visitsToShow = visitsToShow.filter(v => v.petId === filterPetId);
+            visitsToShow = visitsToShow.filter(v => v.mascota_id === filterPetId);
         }
         
         if (visitsToShow.length === 0) {
@@ -731,18 +1088,29 @@ const PetControl = {
             return;
         }
         
-        visitsToShow.sort((a, b) => new Date(b.date) - new Date(a.date));
+        visitsToShow.sort((a, b) => new Date(b.fecha || b.date) - new Date(a.fecha || a.date));
         
         visitsToShow.forEach(visit => {
-            const pet = this.data.pets.find(p => p.id === visit.petId);
-            const petName = pet ? pet.name : 'Mascota desconocida';
+            // Asegurarnos de que existan las propiedades correctas
+            const fecha = visit.fecha || visit.date || '';
+            const motivo = visit.motivo || visit.reason || '';
+            const diagnostico = visit.diagnostico || visit.diagnosis || '';
+            const mascotaId = visit.mascota_id || visit.petId || '';
+            
+            const pet = this.data.pets.find(p => p.id === mascotaId);
+            const petName = pet ? pet.nombre : 'Mascota desconocida';
+            
+            // Verificar que el diagnóstico existe y es una cadena antes de intentar acceder a .length
+            const diagnosisText = typeof diagnostico === 'string' ? 
+                (diagnostico.length > 50 ? diagnostico.substring(0, 50) + '...' : diagnostico) : 
+                'Sin diagnóstico';
             
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${petName}</td>
-                <td>${this.formatDate(visit.date)}</td>
-                <td>${visit.reason}</td>
-                <td>${visit.diagnosis.length > 50 ? visit.diagnosis.substring(0, 50) + '...' : visit.diagnosis}</td>
+                <td>${this.formatDate(fecha)}</td>
+                <td>${motivo}</td>
+                <td>${diagnosisText}</td>
                 <td class="actions">
                     <button class="btn btn-secondary btn-sm edit-visit" data-id="${visit.id}">
                         <i class="fas fa-edit"></i>
@@ -784,7 +1152,7 @@ const PetControl = {
         this.data.pets.forEach(pet => {
             const option = document.createElement('option');
             option.value = pet.id;
-            option.textContent = pet.name;
+            option.textContent = pet.nombre;
             petSelect.appendChild(option);
         });
         
@@ -792,13 +1160,13 @@ const PetControl = {
             // Modo edición
             document.getElementById('medicine-modal-title').textContent = 'Editar Medicamento';
             document.getElementById('medicine-id').value = medicine.id;
-            document.getElementById('medicine-pet').value = medicine.petId;
-            document.getElementById('medicine-name').value = medicine.name;
-            document.getElementById('medicine-dose').value = medicine.dose;
-            document.getElementById('medicine-frequency').value = medicine.frequency;
-            document.getElementById('medicine-start-date').value = medicine.startDate;
-            document.getElementById('medicine-end-date').value = medicine.endDate || '';
-            document.getElementById('medicine-notes').value = medicine.notes || '';
+            document.getElementById('medicine-pet').value = medicine.mascota_id || medicine.petId || '';
+            document.getElementById('medicine-name').value = medicine.nombre || medicine.name || '';
+            document.getElementById('medicine-dose').value = medicine.dosis || medicine.dose || '';
+            document.getElementById('medicine-frequency').value = medicine.frecuencia || medicine.frequency || '';
+            document.getElementById('medicine-start-date').value = medicine.fecha_inicio || medicine.startDate || '';
+            document.getElementById('medicine-end-date').value = medicine.fecha_fin || medicine.endDate || '';
+            document.getElementById('medicine-notes').value = medicine.notas || medicine.notes || '';
         } else {
             // Modo agregar
             document.getElementById('medicine-modal-title').textContent = 'Agregar Medicamento';
@@ -809,13 +1177,39 @@ const PetControl = {
         modal.classList.add('active');
     },
     
-    saveMedicine: function() {
+    saveMedicine: async function() {
         const form = document.getElementById('medicine-form');
         const medicineId = document.getElementById('medicine-id').value;
         const isEdit = !!medicineId;
         
+        // Validar campos obligatorios
+        if (!document.getElementById('medicine-pet').value) {
+            await customAlert('Por favor seleccione una mascota', 'Campo requerido');
+            return;
+        }
+        
+        if (!document.getElementById('medicine-name').value) {
+            await customAlert('Por favor ingrese el nombre del medicamento', 'Campo requerido');
+            return;
+        }
+        
+        if (!document.getElementById('medicine-dose').value) {
+            await customAlert('Por favor ingrese la dosis', 'Campo requerido');
+            return;
+        }
+        
+        if (!document.getElementById('medicine-frequency').value) {
+            await customAlert('Por favor ingrese la frecuencia', 'Campo requerido');
+            return;
+        }
+        
+        if (!document.getElementById('medicine-start-date').value) {
+            await customAlert('Por favor seleccione la fecha de inicio', 'Campo requerido');
+            return;
+        }
+        
         const medicineData = {
-            id: medicineId || this.generateId(),
+            id: medicineId,
             petId: document.getElementById('medicine-pet').value,
             name: document.getElementById('medicine-name').value,
             dose: document.getElementById('medicine-dose').value,
@@ -825,31 +1219,74 @@ const PetControl = {
             notes: document.getElementById('medicine-notes').value || null
         };
         
-        if (isEdit) {
-            // Actualizar medicamento existente
-            const index = this.data.medicines.findIndex(m => m.id === medicineId);
-            if (index !== -1) {
-                this.data.medicines[index] = medicineData;
-            }
-        } else {
-            // Agregar nuevo medicamento
-            this.data.medicines.push(medicineData);
-        }
+        console.log('Enviando datos de medicamento:', medicineData);
         
-        this.saveData();
-        this.renderMedicines();
-        this.closeModal('medicine-modal');
-        this.renderDashboard(); // Actualizar estadísticas
-        this.checkReminders(); // Verificar recordatorios
+        try {
+            const response = await fetch('api/medicamentos.php', {
+                method: isEdit ? 'PUT' : 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(medicineData)
+            });
+
+            const data = await response.json();
+            console.log('Respuesta del servidor:', data);
+            
+            if (data.success || data.id) {
+                this.closeModal('medicine-modal');
+                // Recargar medicamentos desde el servidor
+                const medicinesResponse = await fetch('api/medicamentos.php');
+                if (medicinesResponse.ok) {
+                    const medicinesData = await medicinesResponse.json();
+                    this.data.medicines = Array.isArray(medicinesData) ? medicinesData : [];
+                }
+                this.renderMedicines();
+                this.renderDashboard();
+                this.checkReminders();
+                await customAlert(isEdit ? 'Medicamento actualizado correctamente' : 'Medicamento agregado correctamente', 'Operación exitosa');
+            } else {
+                await customAlert(data.error || 'Error al guardar el medicamento', 'Error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            await customAlert('Error al conectar con el servidor', 'Error de conexión');
+        }
     },
     
-    deleteMedicine: function(medicineId) {
-        if (confirm('¿Estás seguro de que deseas eliminar este registro de medicamento?')) {
-            this.data.medicines = this.data.medicines.filter(medicine => medicine.id !== medicineId);
-            this.saveData();
-            this.renderMedicines();
-            this.renderDashboard();
-            this.checkReminders();
+    deleteMedicine: async function(medicineId) {
+        const confirmDelete = await customConfirm('¿Estás seguro de que deseas eliminar este registro de medicamento?', 'Eliminar medicamento');
+        
+        if (confirmDelete) {
+            try {
+                const response = await fetch('api/medicamentos.php', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ id: medicineId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success || data.deleted) {
+                    // Recargar medicamentos desde el servidor
+                    const medicinesResponse = await fetch('api/medicamentos.php');
+                    if (medicinesResponse.ok) {
+                        const medicinesData = await medicinesResponse.json();
+                        this.data.medicines = Array.isArray(medicinesData) ? medicinesData : [];
+                    }
+                    this.renderMedicines();
+                    this.renderDashboard();
+                    this.checkReminders();
+                    await customAlert('Medicamento eliminado correctamente', 'Operación exitosa');
+                } else {
+                    await customAlert(data.error || 'Error al eliminar el medicamento', 'Error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                await customAlert('Error al conectar con el servidor', 'Error de conexión');
+            }
         }
     },
     
@@ -861,7 +1298,7 @@ const PetControl = {
         let medicinesToShow = [...this.data.medicines];
         
         if (filterPetId) {
-            medicinesToShow = medicinesToShow.filter(m => m.petId === filterPetId);
+            medicinesToShow = medicinesToShow.filter(m => m.mascota_id === filterPetId);
         }
         
         if (medicinesToShow.length === 0) {
@@ -869,20 +1306,28 @@ const PetControl = {
             return;
         }
         
-        medicinesToShow.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+        medicinesToShow.sort((a, b) => new Date(b.fecha_inicio || b.startDate) - new Date(a.fecha_inicio || a.startDate));
         
         medicinesToShow.forEach(medicine => {
-            const pet = this.data.pets.find(p => p.id === medicine.petId);
-            const petName = pet ? pet.name : 'Mascota desconocida';
+            // Asegurarnos de que existan las propiedades correctas
+            const nombre = medicine.nombre || medicine.name || '';
+            const dosis = medicine.dosis || medicine.dose || '';
+            const frecuencia = medicine.frecuencia || medicine.frequency || '';
+            const fechaInicio = medicine.fecha_inicio || medicine.startDate || '';
+            const fechaFin = medicine.fecha_fin || medicine.endDate || null;
+            const mascotaId = medicine.mascota_id || medicine.petId || '';
+            
+            const pet = this.data.pets.find(p => p.id === mascotaId);
+            const petName = pet ? pet.nombre : 'Mascota desconocida';
             
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${petName}</td>
-                <td>${medicine.name}</td>
-                <td>${medicine.dose}</td>
-                <td>${medicine.frequency}</td>
-                <td>${this.formatDate(medicine.startDate)}</td>
-                <td>${medicine.endDate ? this.formatDate(medicine.endDate) : 'N/A'}</td>
+                <td>${nombre}</td>
+                <td>${dosis}</td>
+                <td>${frecuencia}</td>
+                <td>${this.formatDate(fechaInicio)}</td>
+                <td>${fechaFin ? this.formatDate(fechaFin) : 'N/A'}</td>
                 <td class="actions">
                     <button class="btn btn-secondary btn-sm edit-medicine" data-id="${medicine.id}">
                         <i class="fas fa-edit"></i>
@@ -914,10 +1359,10 @@ const PetControl = {
     },
     
     // ===== DIAGNÓSTICO DE ENFERMEDADES =====
-    diagnose: function() {
+    diagnose: async function() {
         const petId = document.getElementById('diagnosis-pet').value;
         if (!petId) {
-            alert('Por favor selecciona una mascota.');
+            await customAlert('Por favor selecciona una mascota.', 'Campo requerido');
             return;
         }
         
@@ -937,7 +1382,7 @@ const PetControl = {
         }
         
         if (symptoms.length === 0) {
-            alert('Por favor selecciona al menos un síntoma.');
+            await customAlert('Por favor selecciona al menos un síntoma.', 'Campo requerido');
             return;
         }
         
@@ -977,21 +1422,80 @@ const PetControl = {
             resultContainer.innerHTML = html;
         }
         
-        // Guardar en el historial
-        const diagnosisRecord = {
-            id: this.generateId(),
+        // Preparar los datos para guardar en la base de datos
+        const recommendations = possibleDiseases.length > 0 ? 
+            possibleDiseases.map(d => d.recommendation).join(' ') : 
+            'Consulta con un veterinario para un diagnóstico preciso.';
+            
+        // Crear objeto de diagnóstico para enviar al servidor
+        const diagnosisData = {
             petId: petId,
-            date: new Date().toISOString().split('T')[0],
-            symptoms: symptoms,
-            possibleDiseases: possibleDiseases.map(d => d.name),
-            recommendations: possibleDiseases.length > 0 ? 
-                possibleDiseases.map(d => d.recommendation).join(' ') : 
-                'Consulta con un veterinario para un diagnóstico preciso.'
+            date: new Date().toISOString().split('T')[0], // Asegurarnos de enviar la fecha en formato ISO
+            symptoms: JSON.stringify(symptoms), // Convertir a JSON string
+            possibleDiseases: JSON.stringify(possibleDiseases.map(d => d.name)), // Convertir a JSON string
+            recommendations: recommendations
         };
         
-        this.data.diagnosisHistory.unshift(diagnosisRecord);
-        this.saveData();
-        this.renderDiagnosisHistory();
+        console.log('Enviando datos de diagnóstico:', diagnosisData);
+        
+        try {
+            const response = await fetch('api/diagnosticos.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(diagnosisData)
+            });
+
+            const data = await response.json();
+            console.log('Respuesta del servidor:', data);
+            
+            if (data.success || data.id) {
+                await customAlert('Diagnóstico guardado correctamente', 'Operación exitosa');
+                
+                // Recargar el historial de diagnósticos desde el servidor
+                await this.loadDiagnosis();
+                this.renderDiagnosisHistory();
+            } else {
+                await customAlert(data.error || 'Error al guardar el diagnóstico', 'Error');
+                console.error('Error del servidor:', data);
+                
+                // En caso de error, al menos mostrar el diagnóstico localmente
+                const localDiagnosis = {
+                    id: this.generateId(),
+                    petId: petId,
+                    date: new Date().toISOString().split('T')[0],
+                    symptoms: symptoms,
+                    possibleDiseases: possibleDiseases.map(d => d.name),
+                    recommendations: recommendations
+                };
+                
+                this.data.diagnosisHistory.unshift(localDiagnosis);
+                this.renderDiagnosisHistory();
+            }
+        } catch (error) {
+            console.error('Error al guardar diagnóstico:', error);
+            await customAlert('Error al conectar con el servidor. El diagnóstico se guardará localmente.', 'Error de conexión');
+            
+            // En caso de error de conexión, guardar localmente
+            const localDiagnosis = {
+                id: this.generateId(),
+                petId: petId,
+                date: new Date().toISOString().split('T')[0],
+                symptoms: symptoms,
+                possibleDiseases: possibleDiseases.map(d => d.name),
+                recommendations: recommendations
+            };
+            
+            this.data.diagnosisHistory.unshift(localDiagnosis);
+            this.renderDiagnosisHistory();
+        }
+        
+        // Limpiar los checkboxes y otros síntomas
+        document.querySelectorAll('input[name="symptom"]:checked').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        document.getElementById('other-symptoms').value = '';
     },
     
     renderDiagnosisHistory: function() {
@@ -1004,29 +1508,75 @@ const PetControl = {
         this.data.pets.forEach(pet => {
             const option = document.createElement('option');
             option.value = pet.id;
-            option.textContent = pet.name;
+            option.textContent = pet.nombre;
             petSelect.appendChild(option);
         });
         
-        if (this.data.diagnosisHistory.length === 0) {
+        if (!this.data.diagnosisHistory || this.data.diagnosisHistory.length === 0) {
             historyList.innerHTML = '<tr><td colspan="5">No hay historial de diagnósticos.</td></tr>';
             return;
         }
         
+        console.log('Historial de diagnósticos:', this.data.diagnosisHistory);
+        
         this.data.diagnosisHistory.forEach(diagnosis => {
-            const pet = this.data.pets.find(p => p.id === diagnosis.petId);
-            const petName = pet ? pet.name : 'Mascota desconocida';
+            try {
+                // Asegurarnos de que existan las propiedades correctas
+                const mascotaId = diagnosis.mascota_id || diagnosis.petId || '';
+                let fecha = diagnosis.fecha || diagnosis.date || '';
+                
+                // Manejar los síntomas que pueden venir como array o como string JSON
+                let symptoms = [];
+                if (typeof diagnosis.sintomas === 'string') {
+                    try {
+                        symptoms = JSON.parse(diagnosis.sintomas);
+                    } catch (e) {
+                        symptoms = [diagnosis.sintomas];
+                    }
+                } else if (Array.isArray(diagnosis.sintomas)) {
+                    symptoms = diagnosis.sintomas;
+                } else if (Array.isArray(diagnosis.symptoms)) {
+                    symptoms = diagnosis.symptoms;
+                }
+                
+                // Manejar enfermedades posibles que pueden venir como array o como string JSON
+                let possibleDiseases = [];
+                if (typeof diagnosis.enfermedades_posibles === 'string') {
+                    try {
+                        possibleDiseases = JSON.parse(diagnosis.enfermedades_posibles);
+                    } catch (e) {
+                        possibleDiseases = [diagnosis.enfermedades_posibles];
+                    }
+                } else if (Array.isArray(diagnosis.enfermedades_posibles)) {
+                    possibleDiseases = diagnosis.enfermedades_posibles;
+                } else if (Array.isArray(diagnosis.possibleDiseases)) {
+                    possibleDiseases = diagnosis.possibleDiseases;
+                }
+                
+                // Manejo de recomendaciones
+                const recommendations = diagnosis.recomendaciones || diagnosis.recommendations || 'Sin recomendaciones';
+                
+                // Convertir arrays a cadenas para mostrar
+                const symptomsText = Array.isArray(symptoms) ? symptoms.join(', ') : 'Sin síntomas';
+                const diseasesText = Array.isArray(possibleDiseases) && possibleDiseases.length > 0 ? 
+                    possibleDiseases.join(', ') : 'Ninguna coincidencia';
+                
+                const pet = this.data.pets.find(p => p.id === mascotaId);
+            const petName = pet ? pet.nombre : 'Mascota desconocida';
             
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${this.formatDate(diagnosis.date)}</td>
+                    <td>${this.formatDate(fecha)}</td>
                 <td>${petName}</td>
-                <td>${diagnosis.symptoms.join(', ')}</td>
-                <td>${diagnosis.possibleDiseases.join(', ') || 'Ninguna coincidencia'}</td>
-                <td>${diagnosis.recommendations}</td>
+                    <td>${symptomsText}</td>
+                    <td>${diseasesText}</td>
+                    <td>${recommendations}</td>
             `;
             
             historyList.appendChild(row);
+            } catch (error) {
+                console.error('Error al renderizar diagnóstico:', error, diagnosis);
+            }
         });
     },
     
@@ -1041,16 +1591,16 @@ const PetControl = {
         twoWeeksFromNow.setDate(today.getDate() + 14);
         
         const pendingVaccines = this.data.vaccines.filter(vaccine => {
-            return vaccine.nextDate && new Date(vaccine.nextDate) <= twoWeeksFromNow && 
-                   new Date(vaccine.nextDate) >= today;
+            return vaccine.proxima_fecha && new Date(vaccine.proxima_fecha) <= twoWeeksFromNow && 
+                   new Date(vaccine.proxima_fecha) >= today;
         }).length;
         
         document.getElementById('pending-vaccines').textContent = pendingVaccines;
         
         // Próximas visitas (próximas 2 semanas)
         const upcomingVisits = this.data.visits.filter(visit => {
-            return visit.nextDate && new Date(visit.nextDate) <= twoWeeksFromNow && 
-                   new Date(visit.nextDate) >= today;
+            return visit.proxima_visita && new Date(visit.proxima_visita) <= twoWeeksFromNow && 
+                   new Date(visit.proxima_visita) >= today;
         }).length;
         
         document.getElementById('upcoming-visits').textContent = upcomingVisits;
@@ -1066,60 +1616,60 @@ const PetControl = {
         
         // Vacunas próximas
         const vaccineReminders = this.data.vaccines.filter(vaccine => {
-            return vaccine.nextDate && new Date(vaccine.nextDate) <= twoWeeksFromNow && 
-                   new Date(vaccine.nextDate) >= today;
+            return vaccine.proxima_fecha && new Date(vaccine.proxima_fecha) <= twoWeeksFromNow && 
+                   new Date(vaccine.proxima_fecha) >= today;
         });
         
         // Visitas próximas
         const visitReminders = this.data.visits.filter(visit => {
-            return visit.nextDate && new Date(visit.nextDate) <= twoWeeksFromNow && 
-                   new Date(visit.nextDate) >= today;
+            return visit.proxima_visita && new Date(visit.proxima_visita) <= twoWeeksFromNow && 
+                   new Date(visit.proxima_visita) >= today;
         });
         
         // Medicamentos activos
         const medicineReminders = this.data.medicines.filter(medicine => {
-            const endDate = medicine.endDate ? new Date(medicine.endDate) : new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000); // Si no hay fecha fin, asumir 30 días
-            return new Date(medicine.startDate) <= today && endDate >= today;
+            const endDate = medicine.fecha_fin ? new Date(medicine.fecha_fin) : new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000); // Si no hay fecha fin, asumir 30 días
+            return new Date(medicine.fecha_inicio) <= today && endDate >= today;
         });
         
         // Combinar todos los recordatorios
         this.data.reminders = [];
         
         vaccineReminders.forEach(vaccine => {
-            const pet = this.data.pets.find(p => p.id === vaccine.petId);
-            const petName = pet ? pet.name : 'Mascota desconocida';
+            const pet = this.data.pets.find(p => p.id === vaccine.mascota_id);
+            const petName = pet ? pet.nombre : 'Mascota desconocida';
             
             this.data.reminders.push({
                 type: 'vaccine',
-                date: vaccine.nextDate,
-                message: `Vacuna "${vaccine.type}" para ${petName} el ${this.formatDate(vaccine.nextDate)}`,
-                petId: vaccine.petId,
+                date: vaccine.proxima_fecha,
+                message: `Vacuna "${vaccine.tipo}" para ${petName} el ${this.formatDate(vaccine.proxima_fecha)}`,
+                petId: vaccine.mascota_id,
                 itemId: vaccine.id
             });
         });
         
         visitReminders.forEach(visit => {
-            const pet = this.data.pets.find(p => p.id === visit.petId);
-            const petName = pet ? pet.name : 'Mascota desconocida';
+            const pet = this.data.pets.find(p => p.id === visit.mascota_id);
+            const petName = pet ? pet.nombre : 'Mascota desconocida';
             
             this.data.reminders.push({
                 type: 'visit',
-                date: visit.nextDate,
-                message: `Cita veterinaria para ${petName} el ${this.formatDate(visit.nextDate)} - Motivo: ${visit.reason}`,
-                petId: visit.petId,
+                date: visit.proxima_visita,
+                message: `Cita veterinaria para ${petName} el ${this.formatDate(visit.proxima_visita)} - Motivo: ${visit.motivo}`,
+                petId: visit.mascota_id,
                 itemId: visit.id
             });
         });
         
         medicineReminders.forEach(medicine => {
-            const pet = this.data.pets.find(p => p.id === medicine.petId);
-            const petName = pet ? pet.name : 'Mascota desconocida';
+            const pet = this.data.pets.find(p => p.id === medicine.mascota_id);
+            const petName = pet ? pet.nombre : 'Mascota desconocida';
             
             this.data.reminders.push({
                 type: 'medicine',
-                date: medicine.startDate,
-                message: `Medicamento "${medicine.name}" para ${petName} - ${medicine.dose} ${medicine.frequency}`,
-                petId: medicine.petId,
+                date: medicine.fecha_inicio,
+                message: `Medicamento "${medicine.nombre}" para ${petName} - ${medicine.dosis} ${medicine.frecuencia}`,
+                petId: medicine.mascota_id,
                 itemId: medicine.id
             });
         });
@@ -1167,7 +1717,7 @@ const PetControl = {
             this.data.pets.forEach(pet => {
                 const option = document.createElement('option');
                 option.value = pet.id;
-                option.textContent = pet.name;
+                option.textContent = pet.nombre;
                 select.appendChild(option);
             });
             
@@ -1179,11 +1729,59 @@ const PetControl = {
     },
     
     // Función para generar PDF (simulada)
-    generatePDF: function(petId) {
-        alert('Función de generación de PDF simulada. En una implementación real, se usaría una biblioteca como jsPDF o pdfkit.');
+    generatePDF: async function(petId) {
+        await customAlert('Función de generación de PDF simulada. En una implementación real, se usaría una biblioteca como jsPDF o pdfkit.', 'Información');
         // Aquí iría el código real para generar el PDF
+    },
+    
+    // Función para cargar visitas desde el servidor
+    loadVisits: async function() {
+        try {
+            const response = await fetch('api/visitas.php');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            console.log('Visitas cargadas:', data);
+            this.data.visits = Array.isArray(data) ? data : [];
+        } catch (error) {
+            console.error('Error al cargar visitas:', error);
+            this.data.visits = [];
+            throw error;
+        }
+    },
+    
+    // Función para cargar medicamentos desde el servidor
+    loadMedicines: async function() {
+        try {
+            const response = await fetch('api/medicamentos.php');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            console.log('Medicamentos cargados:', data);
+            this.data.medicines = Array.isArray(data) ? data : [];
+        } catch (error) {
+            console.error('Error al cargar medicamentos:', error);
+            this.data.medicines = [];
+            throw error;
+        }
+    },
+    
+    // Función para cargar diagnósticos desde el servidor
+    loadDiagnosis: async function() {
+        try {
+            const response = await fetch('api/diagnosticos.php');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            console.log('Diagnósticos cargados:', data);
+            this.data.diagnosisHistory = Array.isArray(data) ? data : [];
+        } catch (error) {
+            console.error('Error al cargar diagnósticos:', error);
+            this.data.diagnosisHistory = [];
+            throw error;
+        }
     }
-};
-
-// Inicializar la aplicación cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', () => PetControl.init()); 
+}; 

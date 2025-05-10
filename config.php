@@ -1,32 +1,22 @@
 <?php
-// api/config.php
+// config.php
 
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-header('Content-Type: application/json; charset=utf-8');
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'petcontrol');
+define('DB_USER', 'tu_usuario_mysql');
+define('DB_PASS', 'tu_contraseña_mysql');
+define('DB_CHARSET', 'utf8mb4');
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    exit;
+$dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
+$options = [
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    PDO::ATTR_EMULATE_PREPARES => false,
+];
+
+try {
+    $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+} catch (PDOException $e) {
+    http_response_code(500);
+    exit(json_encode(['error' => 'Error de conexión: ' . $e->getMessage()]));
 }
-
-// Configuración de la base de datos
-$DB_HOST = 'localhost';
-$DB_USER = 'root';     // Usuario por defecto de WAMP
-$DB_PASS = '';         // Contraseña por defecto de WAMP (vacía)
-$DB_NAME = 'petcontrol';
-
-// Crear conexión
-$conn = new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME);
-
-// Verificar conexión
-if ($conn->connect_error) {
-    die(json_encode([
-        'error' => 'Error de conexión a la base de datos',
-        'details' => $conn->connect_error
-    ]));
-}
-
-// Establecer charset
-$conn->set_charset("utf8");
-?>

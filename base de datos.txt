@@ -1,0 +1,69 @@
+-- Base de datos para PetControl
+CREATE DATABASE IF NOT EXISTS petcontrol;
+USE petcontrol;
+
+-- Tabla de usuarios
+CREATE TABLE IF NOT EXISTS usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(100) NOT NULL,
+    nombre VARCHAR(100)
+);
+
+-- Tabla de mascotas
+CREATE TABLE IF NOT EXISTS mascotas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    especie VARCHAR(50) NOT NULL,
+    raza VARCHAR(100),
+    edad INT,
+    duenio VARCHAR(100),
+    foto TEXT
+);
+
+-- Tabla de vacunas
+CREATE TABLE IF NOT EXISTS vacunas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    mascota_id INT NOT NULL,
+    tipo VARCHAR(100),
+    fecha DATE,
+    proxima_fecha DATE,
+    notas TEXT,
+    FOREIGN KEY (mascota_id) REFERENCES mascotas(id) ON DELETE CASCADE
+);
+
+-- Tabla de visitas veterinarias
+CREATE TABLE IF NOT EXISTS visitas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    mascota_id INT NOT NULL,
+    fecha DATE,
+    motivo TEXT,
+    diagnostico TEXT,
+    tratamiento TEXT,
+    proxima_visita DATE,
+    FOREIGN KEY (mascota_id) REFERENCES mascotas(id) ON DELETE CASCADE
+);
+
+-- Tabla de medicamentos
+CREATE TABLE IF NOT EXISTS medicamentos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    mascota_id INT NOT NULL,
+    nombre VARCHAR(100),
+    dosis VARCHAR(50),
+    frecuencia VARCHAR(50),
+    fecha_inicio DATE,
+    fecha_fin DATE,
+    notas TEXT,
+    FOREIGN KEY (mascota_id) REFERENCES mascotas(id) ON DELETE CASCADE
+);
+
+-- Tabla de historial de diagnósticos
+CREATE TABLE IF NOT EXISTS diagnosticos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    mascota_id INT NOT NULL,
+    fecha DATE,
+    sintomas TEXT,
+    enfermedades_posibles TEXT,
+    recomendaciones TEXT,
+    FOREIGN KEY (mascota_id) REFERENCES mascotas(id) ON DELETE CASCADE
+);

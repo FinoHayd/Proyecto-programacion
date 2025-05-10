@@ -9,7 +9,7 @@
 </head>
 <body>
     <!-- Pantalla de inicio de sesión -->
-    <div class="login-container" id="login-screen" style="background-image: url('dos.jpg'); background-size: cover; background-position: center;">
+    <div class="login-container" id="login-screen">
         <div class="login-box">
             <h1><i class="fas fa-paw"></i> Bienvenidos a PetControl</h1>
             
@@ -75,7 +75,7 @@
             <section id="pets" class="section">
                 <div class="section-header">
                     <h2>Mis Mascotas</h2>
-                    <button id="add-pet-btn" class="btn-primary"><i class="fas fa-plus"></i> Agregar Mascota</button>
+                    <button id="add-pet-btn" class="btn btn-primary"><i class="fas fa-plus"></i> Agregar Mascota</button>
                 </div>
                 <div id="pets-list" class="cards-container"></div>
                 
@@ -118,7 +118,7 @@
                                 <label for="pet-photo">URL de Foto (opcional)</label>
                                 <input type="text" id="pet-photo">
                             </div>
-                            <button type="submit" class="btn-primary">Guardar</button>
+                            <button type="submit" class="btn btn-primary">Guardar</button>
                         </form>
                     </div>
                 </div>
@@ -128,7 +128,7 @@
             <section id="vaccines" class="section">
                 <div class="section-header">
                     <h2>Vacunas</h2>
-                    <button id="add-vaccine-btn" class="btn-primary"><i class="fas fa-plus"></i> Agregar Vacuna</button>
+                    <button id="add-vaccine-btn" class="btn btn-primary"><i class="fas fa-plus"></i> Agregar Vacuna</button>
                 </div>
                 <div class="filter-container">
                     <label for="filter-vaccine-pet">Filtrar por mascota:</label>
@@ -186,7 +186,7 @@
                                 <label for="vaccine-notes">Notas</label>
                                 <textarea id="vaccine-notes" rows="3"></textarea>
                             </div>
-                            <button type="submit" class="btn-primary">Guardar</button>
+                            <button type="submit" class="btn btn-primary">Guardar</button>
                         </form>
                     </div>
                 </div>
@@ -196,7 +196,7 @@
             <section id="visits" class="section">
                 <div class="section-header">
                     <h2>Visitas Veterinarias</h2>
-                    <button id="add-visit-btn" class="btn-primary"><i class="fas fa-plus"></i> Agregar Visita</button>
+                    <button id="add-visit-btn" class="btn btn-primary"><i class="fas fa-plus"></i> Agregar Visita</button>
                 </div>
                 <div class="filter-container">
                     <label for="filter-visit-pet">Filtrar por mascota:</label>
@@ -248,7 +248,7 @@
                                 <label for="visit-next-date">Próxima Visita (opcional)</label>
                                 <input type="date" id="visit-next-date">
                             </div>
-                            <button type="submit" class="btn-primary">Guardar</button>
+                            <button type="submit" class="btn btn-primary">Guardar</button>
                         </form>
                     </div>
                 </div>
@@ -258,7 +258,7 @@
             <section id="medicines" class="section">
                 <div class="section-header">
                     <h2>Medicamentos</h2>
-                    <button id="add-medicine-btn" class="btn-primary"><i class="fas fa-plus"></i> Agregar Medicamento</button>
+                    <button id="add-medicine-btn" class="btn btn-primary"><i class="fas fa-plus"></i> Agregar Medicamento</button>
                 </div>
                 <div class="filter-container">
                     <label for="filter-medicine-pet">Filtrar por mascota:</label>
@@ -316,7 +316,7 @@
                                 <label for="medicine-notes">Instrucciones</label>
                                 <textarea id="medicine-notes" rows="3"></textarea>
                             </div>
-                            <button type="submit" class="btn-primary">Guardar</button>
+                            <button type="submit" class="btn btn-primary">Guardar</button>
                         </form>
                     </div>
                 </div>
@@ -357,7 +357,7 @@
                             <label for="other-symptoms">Otros síntomas (separados por comas)</label>
                             <input type="text" id="other-symptoms" placeholder="Ejemplo: temblores, inflamación, etc.">
                         </div>
-                        <button id="diagnose-btn" class="btn-primary">Diagnosticar</button>
+                        <button id="diagnose-btn" class="btn btn-primary">Diagnosticar</button>
                     </div>
                     <div class="diagnosis-result" id="diagnosis-result">
                         <h3>Resultado del Diagnóstico</h3>
@@ -384,7 +384,34 @@
         </main>
     </div>
 
+    <!-- Modal de alerta personalizado -->
+    <div id="custom-alert-modal" class="modal">
+        <div class="modal-content alert-modal-content">
+            <div class="alert-icon">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <h3 id="alert-title">Mensaje</h3>
+            <p id="alert-message"></p>
+            <div class="alert-buttons">
+                <button id="alert-confirm-btn" class="btn btn-primary">Aceptar</button>
+            </div>
+        </div>
+    </div>
 
+    <!-- Modal de confirmación personalizado -->
+    <div id="custom-confirm-modal" class="modal">
+        <div class="modal-content alert-modal-content">
+            <div class="alert-icon">
+                <i class="fas fa-question-circle"></i>
+            </div>
+            <h3 id="confirm-title">Confirmar</h3>
+            <p id="confirm-message"></p>
+            <div class="alert-buttons">
+                <button id="confirm-cancel-btn" class="btn btn-secondary">Cancelar</button>
+                <button id="confirm-accept-btn" class="btn btn-primary">Aceptar</button>
+            </div>
+        </div>
+    </div>
 
     <script src="app.js"></script>
 </body>
