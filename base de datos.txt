@@ -1,69 +1,132 @@
--- Base de datos para PetControl
-CREATE DATABASE IF NOT EXISTS petcontrol;
-USE petcontrol;
+-- Crear la base de datos y seleccionarla
+CREATE DATABASE IF NOT EXISTS `petcontrol`
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_general_ci;
+USE `petcontrol`;
 
--- Tabla de usuarios
-CREATE TABLE IF NOT EXISTS usuarios (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL UNIQUE,
-    password VARCHAR(100) NOT NULL,
-    nombre VARCHAR(100)
-);
+-- Ajustes iniciales
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
 
--- Tabla de mascotas
-CREATE TABLE IF NOT EXISTS mascotas (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    especie VARCHAR(50) NOT NULL,
-    raza VARCHAR(100),
-    edad INT,
-    duenio VARCHAR(100),
-    foto TEXT
-);
+-- --------------------------------------------------------
+-- Tabla `diagnosticos`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `diagnosticos`;
+CREATE TABLE `diagnosticos` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `mascota_id` int NOT NULL,
+  `fecha` date DEFAULT NULL,
+  `sintomas` text,
+  `enfermedades_posibles` text,
+  `recomendaciones` text,
+  PRIMARY KEY (`id`),
+  KEY `mascota_id` (`mascota_id`)
+) ENGINE=MyISAM AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Tabla de vacunas
-CREATE TABLE IF NOT EXISTS vacunas (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    mascota_id INT NOT NULL,
-    tipo VARCHAR(100),
-    fecha DATE,
-    proxima_fecha DATE,
-    notas TEXT,
-    FOREIGN KEY (mascota_id) REFERENCES mascotas(id) ON DELETE CASCADE
-);
+INSERT INTO `diagnosticos` (`id`, `mascota_id`, `fecha`, `sintomas`, `enfermedades_posibles`, `recomendaciones`) VALUES
+(1, 7, '2025-05-10', '["Fiebre","Vómitos","Letargo"]', '["Parvovirus","Leptospirosis"]', 'Emergencia veterinaria inmediata. Altamente contagioso para otros perros. Tratamiento con antibióticos necesario. Puede ser zoonótica (transmisible a humanos).'),
+(2, 6, '2025-05-10', '["Fiebre","Picor","Cojea"]', '[]', 'Consulta con un veterinario para un diagnóstico preciso.'),
+(3, 6, '2025-05-10', '["Pérdida de apetito","Letargo"]', '["Obesidad"]', 'Plan de alimentación controlado. Incremento gradual de ejercicio.'),
+(4, 6, '2025-05-10', '["Pérdida de apetito","Letargo"]', '["Obesidad"]', 'Plan de alimentación controlado. Incremento gradual de ejercicio.');
 
--- Tabla de visitas veterinarias
-CREATE TABLE IF NOT EXISTS visitas (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    mascota_id INT NOT NULL,
-    fecha DATE,
-    motivo TEXT,
-    diagnostico TEXT,
-    tratamiento TEXT,
-    proxima_visita DATE,
-    FOREIGN KEY (mascota_id) REFERENCES mascotas(id) ON DELETE CASCADE
-);
+-- --------------------------------------------------------
+-- Tabla `mascotas`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `mascotas`;
+CREATE TABLE `mascotas` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(100) NOT NULL,
+  `especie` varchar(50) NOT NULL,
+  `raza` varchar(100) DEFAULT NULL,
+  `edad` int DEFAULT NULL,
+  `duenio` varchar(100) DEFAULT NULL,
+  `foto` text,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Tabla de medicamentos
-CREATE TABLE IF NOT EXISTS medicamentos (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    mascota_id INT NOT NULL,
-    nombre VARCHAR(100),
-    dosis VARCHAR(50),
-    frecuencia VARCHAR(50),
-    fecha_inicio DATE,
-    fecha_fin DATE,
-    notas TEXT,
-    FOREIGN KEY (mascota_id) REFERENCES mascotas(id) ON DELETE CASCADE
-);
+INSERT INTO `mascotas` (`id`, `nombre`, `especie`, `raza`, `edad`, `duenio`, `foto`) VALUES
+(7, 'lulu', 'Gato', 'siames', 3, 'Andres', 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/...'),
+(6, 'Max', 'Perro', 'lobo siberiano', 2, 'Andres', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRSvYCJ4QkfB7J1F_PI9sCd7L0O8R3-EpRYsw&s'),
+(8, 'coco', 'Gato', 'gato negro', 4, 'sandra', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTwZjOQ0qYgQcOpFdAXxTePbL_7arjntJHMlQ&s'),
+(9, 'roky', 'Ave', 'loro', 2, 'camilo', 'data:image/webp;base64,UklGRpYOAABXRUJQVlA4IIoOAABwRgCdASrCAIQAPr...');
 
--- Tabla de historial de diagnósticos
-CREATE TABLE IF NOT EXISTS diagnosticos (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    mascota_id INT NOT NULL,
-    fecha DATE,
-    sintomas TEXT,
-    enfermedades_posibles TEXT,
-    recomendaciones TEXT,
-    FOREIGN KEY (mascota_id) REFERENCES mascotas(id) ON DELETE CASCADE
-);
+-- --------------------------------------------------------
+-- Tabla `medicamentos`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `medicamentos`;
+CREATE TABLE `medicamentos` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `mascota_id` int NOT NULL,
+  `nombre` varchar(100) DEFAULT NULL,
+  `dosis` varchar(50) DEFAULT NULL,
+  `frecuencia` varchar(50) DEFAULT NULL,
+  `fecha_inicio` date DEFAULT NULL,
+  `fecha_fin` date DEFAULT NULL,
+  `notas` text,
+  PRIMARY KEY (`id`),
+  KEY `mascota_id` (`mascota_id`)
+) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+INSERT INTO `medicamentos` (`id`, `mascota_id`, `nombre`, `dosis`, `frecuencia`, `fecha_inicio`, `fecha_fin`, `notas`) VALUES
+(1, 8, 'acetaminofen', '3', 'cada 8 horas', '2025-05-10', '2025-05-17', 'ninguna\n'),
+(2, 7, 'acetaminofen', '3', 'cada 8 horas', '2025-05-10', '2025-05-17', 'nada ');
+
+-- --------------------------------------------------------
+-- Tabla `usuarios`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `usuarios`;
+CREATE TABLE `usuarios` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) NOT NULL,
+  `password` varchar(100) NOT NULL,
+  `nombre` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`)
+) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+INSERT INTO `usuarios` (`id`, `username`, `password`, `nombre`) VALUES
+(1, 'Andres', '$2y$10$3/.DRdhNFAwGY6SNYpLuM.vV2Cm1OCpw3Ru8G0ZbKkKxZJQJHB8/S', 'Andres');
+
+-- --------------------------------------------------------
+-- Tabla `vacunas`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `vacunas`;
+CREATE TABLE `vacunas` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `mascota_id` int NOT NULL,
+  `tipo` varchar(100) DEFAULT NULL,
+  `fecha` date DEFAULT NULL,
+  `proxima_fecha` date DEFAULT NULL,
+  `notas` text,
+  PRIMARY KEY (`id`),
+  KEY `mascota_id` (`mascota_id`)
+) ENGINE=MyISAM AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+INSERT INTO `vacunas` (`id`, `mascota_id`, `tipo`, `fecha`, `proxima_fecha`, `notas`) VALUES
+(3, 8, 'Rabia', '2025-05-10', '2025-05-18', 'acarisiar mas'),
+(2, 6, 'Rabia', '2025-05-15', '2025-05-07', 'cuidar y solo liquidos'),
+(4, 7, 'Hepatitis', '2025-05-10', '2025-05-21', 'esto es una enfermedad'),
+(5, 6, 'Leptospirosis', '2025-05-23', '2025-05-24', 'enfermo');
+
+-- --------------------------------------------------------
+-- Tabla `visitas`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `visitas`;
+CREATE TABLE `visitas` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `mascota_id` int NOT NULL,
+  `fecha` date DEFAULT NULL,
+  `motivo` text,
+  `diagnostico` text,
+  `tratamiento` text,
+  `proxima_visita` date DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `mascota_id` (`mascota_id`)
+) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+INSERT INTO `visitas` (`id`, `mascota_id`, `fecha`, `motivo`, `diagnostico`, `tratamiento`, `proxima_visita`) VALUES
+(1, 8, '2025-05-10', 'revision', 'dolor ', '3 dulces', '2025-05-17'),
+(2, 8, '2025-05-10', 'revision', 'mas liquidos', 'tomar agua\n', '2025-05-24');
+
+COMMIT;
